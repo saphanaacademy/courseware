@@ -143,6 +143,7 @@ AND LONLAT_POINT_4326.ST_CoveredBy(NEW ST_Polygon('Polygon((
 
 -- create a table with geometry supertype and an identity
 
+DROP TABLE DEVTEST.GEOTYPES;
 CREATE COLUMN TABLE DEVTEST.GEOTYPES (
 	ID INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
 	SHAPE ST_GEOMETRY(0)
@@ -178,18 +179,6 @@ INSERT INTO DEVTEST.GEOTYPES VALUES (NEW ST_MultiPolygon('MultiPolygon (((-5 -5,
 INSERT INTO DEVTEST.GEOTYPES VALUES (New ST_GeometryCollection( 'GeometryCollection (LineString(5 10, 10 12, 15 10), Polygon ((10 -5, 15 5, 5 5, 10 -5)))'));
 
 
--- add additional spatial type columns
-
-ALTER TABLE DEVTEST.GEOTYPES ADD (GEO1 ST_CircularString(0));
-ALTER TABLE DEVTEST.GEOTYPES ADD (GEO2 ST_LineString(0));
-ALTER TABLE DEVTEST.GEOTYPES ADD (GEO3 ST_MultiLineString(0));
-ALTER TABLE DEVTEST.GEOTYPES ADD (GEO4 ST_Point(0));
-ALTER TABLE DEVTEST.GEOTYPES ADD (GEO5 ST_MultiPoint(0));
-ALTER TABLE DEVTEST.GEOTYPES ADD (GEO6 ST_Polygon(0));
-ALTER TABLE DEVTEST.GEOTYPES ADD (GEO7 ST_MultiPolygon(0));
-ALTER TABLE DEVTEST.GEOTYPES ADD (GEO8 ST_GeometryCollection(0));
-
-
 --------------------------------
 --
 --  multi-dimensional geo data
@@ -198,6 +187,7 @@ ALTER TABLE DEVTEST.GEOTYPES ADD (GEO8 ST_GeometryCollection(0));
 
 -- create table and add data, some multi-dimensional, to table
 
+DROP TABLE GEOMULTIDIM;
 CREATE COLUMN TABLE GEOMULTIDIM (
 	ID INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
  	GEO ST_GEOMETRY
@@ -246,6 +236,3 @@ SELECT
  FROM GEOMULTIDIM
  WHERE GEO.ST_GeometryType() = 'ST_Point' 
  AND (GEO.ST_Is3D() = 1 OR GEO.ST_IsMeasured() = 1)
-
- 
-
