@@ -1,0 +1,333 @@
+--------------------------------------
+--
+-- start with creating a series table
+--
+--------------------------------------
+
+DROP TABLE SERIES_DATA.WEATHER_HOURLY;
+
+CREATE COLUMN TABLE SERIES_DATA.WEATHER_HOURLY (
+	SENSOR VARCHAR(15), 
+	TIMER TIMESTAMP, 
+	TMP DECIMAL(10,2),
+	DWP DECIMAL(10,2)
+)
+SERIES (
+	SERIES KEY(SENSOR) 
+	PERIOD FOR SERIES(TIMER)
+	EQUIDISTANT INCREMENT BY INTERVAL 1 HOUR
+	MINVALUE '2013-01-01 00:00:00'
+	MAXVALUE '2014-12-31 23:00:00'
+ );
+
+
+INSERT INTO SERIES_DATA.WEATHER_HOURLY (
+	SELECT SENSOR, TIMER, AVG(TMP), AVG(DWP) 
+	FROM (
+		SELECT SENSOR, SERIES_ROUND(TIMER, 'INTERVAL 1 HOUR', ROUND_DOWN) AS TIMER, TMP, DWP 
+		FROM SERIES_DATA.WEATHER
+	)
+	GROUP BY SENSOR, TIMER
+);
+
+-- select statement from weather table is standard sql
+
+SELECT * FROM SERIES_DATA.WEATHER_HOURLY
+ORDER BY TIMER ASC;
+
+-- select generated series info
+
+SELECT *
+FROM SERIES_GENERATE_TIMESTAMP (
+ 	SERIES TABLE SERIES_DATA.WEATHER_HOURLY
+) W;
+
+
+--------------------------------------
+--
+-- series round examples using weather table
+--
+--------------------------------------
+
+-- n buckets per year where n = 5
+SELECT BUCKET, MAX(TMP)
+FROM (
+	SELECT 
+	 SERIES_ROUND(TIMER, 'interval ' || 3600*24*365/5 || ' second') AS BUCKET, 
+	 TMP
+	FROM SERIES_DATA.WEATHER
+	WHERE SENSOR = 'OTM'
+) W
+GROUP BY BUCKET;
+
+-- use jan 6 as first day as first saturday in year (note that data starts jan 10)
+SELECT BUCKET, MAX(TMP)
+FROM (
+	SELECT 
+	 SERIES_ROUND(TIMER, 'interval 7 day', ROUND_DOWN, '2014-01-06 00:00:00') AS BUCKET, 
+	 TMP
+	FROM SERIES_DATA.WEATHER
+	WHERE SENSOR = 'OTM'
+) W
+GROUP BY BUCKET;
+
+------------------------------
+
+-- using round_down for series horizontal aggregation, hourly to daily
+
+WITH WEATHER_DAILY AS (
+	SELECT SENSOR, 
+	SERIES_ROUND(TIMER, 'INTERVAL 1 DAY', ROUND_DOWN) AS TIMER_DAY, 
+	TMP 
+	FROM SERIES_DATA.WEATHER_HOURLY
+)
+SELECT SENSOR, TIMER_DAY, AVG(TMP) AS DAILY_AVG 
+FROM WEATHER_DAILY
+WHERE SENSOR = 'OTM'
+GROUP BY SENSOR, TIMER_DAY;
+
+
+--------------------------------------
+--
+-- first last nth using stock table
+--
+--------------------------------------
+
+SELECT DISTINCT
+TO_DATE(MIN(DAY_TIME)) AS "DATE",
+ FIRST_VALUE("OPEN" ORDER BY DAY_TIME) AS "OPEN",
+ LAST_VALUE("CLOSE" ORDER BY DAY_TIME) AS "CLOSE",
+ NTH_VALUE("HIGH", 195 ORDER BY DAY_TIME) AS "MID_DAY"
+FROM SERIES_DATA.STOCK
+GROUP BY SERIES_ROUND(DAY_TIME, 'INTERVAL 1 DAY', ROUND_DOWN)
+ORDER BY "DATE";
+
+
+--------------------------------------
+--
+-- dealing with missing data using approximations
+--
+--------------------------------------
+
+-- look at existing nulls in value column
+
+SELECT TIMER, TMP 
+FROM SERIES_DATA.WEATHER_NULLS_HOURLY
+ORDER BY TIMER;
+
+-- approximate data with two methods (also see chart in pdf)
+
+SELECT 
+ TIMER, 
+ TMP,
+ linear_approx(TMP) OVER (ORDER BY TIMER),
+ cubic_spline_approx(TMP) OVER (ORDER BY TIMER)
+FROM SERIES_DATA.WEATHER_NULLS_HOURLY;
+
+
+-- joining with existing generated series to eliminate gaps locally in query
+-- brings back NULLS for missing values
+
+SELECT W.SENSOR, W.TMP, G.GENERATED_PERIOD_START 
+FROM (
+	SELECT 
+	 GENERATED_PERIOD_START 
+	FROM SERIES_GENERATE_TIMESTAMP (SERIES TABLE SERIES_DATA.WEATHER_NULLS_HOURLY)
+	) AS G
+LEFT JOIN WEATHER_NULLS_HOURLY AS W
+ON W.TIMER = G.GENERATED_PERIOD_START 
+AND W.SENSOR = 'OTM'
+WHERE G.GENERATED_PERIOD_START >= (SELECT MIN(TIMER) FROM SERIES_DATA.WEATHER_NULLS_HOURLY)
+AND G.GENERATED_PERIOD_START < (SELECT MAX(TIMER) FROM SERIES_DATA.WEATHER_NULLS_HOURLY)
+ORDER BY G.GENERATED_PERIOD_START;
+
+
+--------------------------------------
+--
+-- exponential smoothing, single & double
+--
+--------------------------------------
+
+-- also see chart in pdf
+
+WITH WEATHER_DAILY_HORIZONTAL_AGG AS (
+	SELECT SENSOR, 
+	 SERIES_ROUND(TIMER, 'INTERVAL 1 DAY', ROUND_DOWN) AS TIMER, 
+	 TMP 
+	FROM SERIES_DATA.WEATHER_HOURLY
+),
+WEATHER_DAILY_AVG AS (
+	SELECT SENSOR, TIMER, MAX(TMP) AS TMP
+	FROM WEATHER_DAILY_HORIZONTAL_AGG
+	WHERE SENSOR = 'OTM'
+	GROUP BY SENSOR, TIMER
+)
+SELECT TIMER, TMP, 
+       SERIES_FILTER(VALUE => TMP, METHOD_NAME => 'SINGLESMOOTH', ALPHA => 0.2) OVER (ORDER BY TIMER) AS SES,
+       SERIES_FILTER(VALUE => TMP, METHOD_NAME => 'DOUBLESMOOTH', ALPHA => 0.2, BETA => 0.3) OVER (ORDER BY TIMER) AS DES
+FROM WEATHER_DAILY_AVG
+WHERE TMP >= 0
+ORDER BY TIMER;
+
+
+--------------------------------------
+--
+-- weighted moving average
+--
+--------------------------------------
+
+-- also see chart in pdf
+
+WITH WEATHER_DAILY_HORIZONTAL_AGG AS (
+	SELECT SENSOR, 
+	 SERIES_ROUND(TIMER, 'INTERVAL 1 DAY', ROUND_DOWN) AS TIMER, 
+	 TMP 
+	FROM SERIES_DATA.WEATHER_HOURLY
+),
+WEATHER_DAILY_AVG AS (
+	SELECT SENSOR, TIMER, MAX(TMP) AS TMP
+	FROM WEATHER_DAILY_HORIZONTAL_AGG
+	WHERE SENSOR = 'OTM'
+	GROUP BY SENSOR, TIMER
+)
+SELECT *,
+ weighted_avg(TMP) OVER (ORDER BY TIMER ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) 
+FROM WEATHER_DAILY_AVG;
+
+
+--------------------------------------
+--
+-- auto correlation
+--
+--------------------------------------
+
+-- also see chart in pdf
+-- there is also a cross correlation function to compare two series...please see help for more info
+
+SELECT TMP_SEQ_CORR, ordinality AS LAG
+FROM unnest((
+SELECT auto_corr(TMP, 240 ORDER BY TIMER)
+FROM SERIES_DATA.WEATHER_HOURLY
+WHERE SENSOR = 'OTM'
+)) WITH ORDINALITY AS WEATHER_HOURLY_AUTO_CORR(TMP_SEQ_CORR);
+
+
+--------------------------------------
+--
+-- random partition
+--
+--------------------------------------
+
+--stratified partitioning with fractional partition sizes (70% training, 20% validation, 10% test)
+-- https://en.wikipedia.org/wiki/Stratified_sampling
+
+SELECT *,
+random_partition(0.7, 0.2, 0.1, 42) OVER (PARTITION BY SENSOR) AS RND_PARTN
+FROM SERIES_DATA.WEATHER_HOURLY;
+
+
+--------------------------------------
+--
+-- binning
+--
+--------------------------------------
+
+-- TILE_COUNT: specifies the number of bins with equal number of records
+
+WITH BINNED AS (
+	SELECT *, BINNING(VALUE => READING, TILE_COUNT => 100) OVER () AS BIN_NUM
+	FROM SERIES_DATA.MACHINE_READINGS
+	WHERE READING >= 0
+)
+SELECT 
+ BIN_NUM, 
+ COUNT(READING) AS CNT,
+ COUNT(DISTINCT READING) AS DCNT,
+ MAX(READING) AS RMAX,
+ MIN(READING) AS RMIN, 
+ MAX(READING)-MIN(READING) AS RANGE
+FROM BINNED
+GROUP BY BIN_NUM
+ORDER BY BIN_NUM
+;
+
+-- BIN_COUNT: specifies the number of equal-width bins
+
+WITH BINNED AS (
+	SELECT *, BINNING(VALUE => READING, BIN_COUNT => 4) OVER () AS BIN_NUM
+	FROM SERIES_DATA.MACHINE_READINGS
+	WHERE READING >= 0
+)
+SELECT 
+ BIN_NUM, 
+ COUNT(READING) AS CNT,
+ COUNT(DISTINCT READING) AS DCNT,
+ MAX(READING) AS RMAX,
+ MIN(READING) AS RMIN, 
+ MAX(READING)-MIN(READING) AS RANGE
+FROM BINNED
+GROUP BY BIN_NUM
+ORDER BY BIN_NUM;
+
+-- BIN_WIDTH: specifies the width of the bins
+
+WITH BINNED AS (
+	SELECT *, BINNING(VALUE => READING, BIN_WIDTH => 20) OVER () AS BIN_NUM
+	FROM SERIES_DATA.MACHINE_READINGS
+	WHERE READING >= 0
+)
+SELECT 
+ BIN_NUM, 
+ COUNT(READING) AS CNT,
+ COUNT(DISTINCT READING) AS DCNT,
+ MAX(READING) AS RMAX,
+ MIN(READING) AS RMIN, 
+ MAX(READING)-MIN(READING) AS RANGE
+FROM BINNED
+GROUP BY BIN_NUM
+ORDER BY BIN_NUM;
+
+
+--------------------------------------
+--
+-- discrete fourier transform
+--
+--------------------------------------
+
+-- create fake data
+
+DROP TABLE SERIES_DATA.VIBRATION;
+CREATE COLUMN TABLE SERIES_DATA.VIBRATION (
+     SENSOR INT,
+     TIMER TIMESTAMP,
+     READING_AMPLITUDE DOUBLE
+) 
+SERIES (
+	SERIES KEY(SENSOR)
+	PERIOD FOR SERIES(TIMER)
+	MINVALUE '2010-01-01'
+	MAXVALUE '2010-01-11'
+	EQUIDISTANT INCREMENT BY INTERVAL 1 SECOND MISSING ELEMENTS NOT ALLOWED
+);
+
+DELETE FROM SERIES_DATA.VIBRATION;
+INSERT INTO SERIES_DATA.VIBRATION (
+	SELECT 
+	 1, 
+	 GENERATED_PERIOD_START, 
+	 ROUND(1 + COS((ELEMENT_NUMBER/9)*2*3.1413),1) AS VALUE  -- generation of fake READING_AMPLITUDE data
+	 FROM SERIES_GENERATE_TIMESTAMP( 'INTERVAL 1 SECOND', '2010-01-01', '2010-01-10')
+);
+
+SELECT * FROM SERIES_DATA.VIBRATION;
+
+-- DFT syntax
+
+SELECT DFT(READING_AMPLITUDE, 4096 ORDER BY TIMER).AMPLITUDE from SERIES_DATA.VIBRATION;
+
+SELECT 
+ ORDINALITY AS FREQUENCY, 
+ DFT_AMPLITUDE/4096 AS AMPLITUDE
+FROM UNNEST(
+	(SELECT DFT(READING_AMPLITUDE, 4096 ORDER BY TIMER).AMPLITUDE FROM SERIES_DATA.VIBRATION)
+) WITH ORDINALITY AS UNNESTED_DFT(DFT_AMPLITUDE)
