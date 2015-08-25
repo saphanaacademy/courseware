@@ -10,6 +10,14 @@
 
 -------------------------------------------------------------
 --
+--  ST_Transform method
+--
+-------------------------------------------------------------
+
+
+
+-------------------------------------------------------------
+--
 --  doing some distance calculations using different SRID's
 --
 -------------------------------------------------------------
@@ -34,25 +42,6 @@ SELECT
  VN_1000004326.ST_DISTANCE(DU_1000004326, 'kilometer') AS DIST_1000004326,
  VN_4326.ST_DISTANCE(DU_4326, 'kilometer') AS DIST_4326
 FROM A;
-
- 
--------------------------------------
---
---  using the ST_Transform() method
---
--------------------------------------
-
--- constructing a transform & using in a distance calc
-
-SELECT TOP 10 "ROWID", 
- LONLAT_POINT_0.ST_AsWKT(),
- LONLAT_POINT_0.ST_DISTANCE(NEW ST_Point('POINT(-121.8899999 37.7067592)'), 'kilometer') AS DIST_0toNew,
- LONLAT_POINT_0.ST_DISTANCE(LONLAT_POINT_0, 'kilometer') AS DIST_0to0,
- LONLAT_POINT_1000004326.ST_Transform(4326).ST_SRID() 
- --,LONLAT_POINT_0.ST_DISTANCE(LONLAT_POINT_4326.ST_Transform(0), 'kilometer') AS DIST_0to4326
- --,LONLAT_POINT_4326.ST_DISTANCE(LONLAT_POINT_1000004326.ST_Transform(4326), 'kilometer') AS DIST_4326to1000004326
- FROM CENSUS_GEO
- ORDER BY "ROWID" ASC; 
 
 
 ----------------------------------
@@ -134,49 +123,28 @@ AND LONLAT_POINT_4326.ST_CoveredBy(NEW ST_Polygon('Polygon((
        
 
 
-
-------------------------------------
+-------------------------------------
 --
---  subtypes of geometry supertype
+--  using the ST_Transform() method
 --
-------------------------------------
+-------------------------------------
 
--- create a table with geometry supertype and an identity
+-- constructing a transform & using in a distance calc
 
-DROP TABLE DEVTEST.GEOTYPES;
-CREATE COLUMN TABLE DEVTEST.GEOTYPES (
-	ID INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-	SHAPE ST_GEOMETRY(0)
-);
+SELECT TOP 10 "ROWID", 
+ LONLAT_POINT_0.ST_AsWKT(),
+ LONLAT_POINT_0.ST_DISTANCE(NEW ST_Point('POINT(-121.8899999 37.7067592)'), 'kilometer') AS DIST_0toNew,
+ LONLAT_POINT_0.ST_DISTANCE(LONLAT_POINT_0, 'kilometer') AS DIST_0to0,
+ LONLAT_POINT_1000004326.ST_Transform(4326).ST_SRID() 
+ --,LONLAT_POINT_0.ST_DISTANCE(LONLAT_POINT_4326.ST_Transform(0), 'kilometer') AS DIST_0to4326
+ --,LONLAT_POINT_4326.ST_DISTANCE(LONLAT_POINT_1000004326.ST_Transform(4326), 'kilometer') AS DIST_4326to1000004326
+ FROM CENSUS_GEO
+ ORDER BY "ROWID" ASC; 
 
--- add each of the 8 spatial subtypes
 
--- circularstring
-INSERT INTO DEVTEST.GEOTYPES VALUES (NEW ST_CircularString('CIRCULARSTRING(0 0, 1 1, 0 2)'));
-INSERT INTO DEVTEST.GEOTYPES VALUES (NEW ST_CircularString('CIRCULARSTRING(0 0, 1 1, 0 2, -1 1, 0 0 )'));
+SELECT TRANSFORM_DEFINITION, SRS_ID FROM ST_SPATIAL_REFERENCE_SYSTEMS 
 
--- linestring
-INSERT INTO DEVTEST.GEOTYPES VALUES (NEW ST_LineString('LineString (0 0, 5 10)'));
-INSERT INTO DEVTEST.GEOTYPES VALUES (NEW ST_LineString('LineString (0 0, 5 10, 5 6)'));
 
--- multi-line string
-INSERT INTO DEVTEST.GEOTYPES VALUES (NEW ST_MultiLineString('MultiLineString ((10 10, 12 12), (14 10, 16 12))'));
-
--- point
-INSERT INTO DEVTEST.GEOTYPES VALUES (NEW ST_Point('Point (10 10)'));
-
--- multi-point
-INSERT INTO DEVTEST.GEOTYPES VALUES (NEW ST_MultiPoint('MultiPoint ((10 10), (12 12), (14 10))'));
-
--- polygon
-INSERT INTO DEVTEST.GEOTYPES VALUES (NEW ST_Polygon('Polygon ((-5 -5, 5 -5, 0 5, -5 -5))'));
-INSERT INTO DEVTEST.GEOTYPES VALUES (NEW ST_Polygon('Polygon ((-5 -5, 5 -5, 0 5, -6 -6))'));
-
--- multi-polygon
-INSERT INTO DEVTEST.GEOTYPES VALUES (NEW ST_MultiPolygon('MultiPolygon (((-5 -5, 5 -5, 0 5, -5 -5), (-2 -2, -2 0, 2 0, 2 -2, -2 -2)), ((10 -5, 15 5, 5 5, 10 -5)))'));
-
--- geometry collection
-INSERT INTO DEVTEST.GEOTYPES VALUES (New ST_GeometryCollection( 'GeometryCollection (LineString(5 10, 10 12, 15 10), Polygon ((10 -5, 15 5, 5 5, 10 -5)))'));
 
 
 --------------------------------
@@ -236,3 +204,6 @@ SELECT
  FROM GEOMULTIDIM
  WHERE GEO.ST_GeometryType() = 'ST_Point' 
  AND (GEO.ST_Is3D() = 1 OR GEO.ST_IsMeasured() = 1)
+
+ 
+
