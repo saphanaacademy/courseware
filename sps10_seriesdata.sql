@@ -146,6 +146,7 @@ SELECT * FROM SERIES_DATA.WEATHER_HOURLY
 WHERE SENSOR = 'OTM'
 ORDER BY TIMER ASC;
 
+
 --------------------------------------
 --
 -- exponential smoothing, single & double
