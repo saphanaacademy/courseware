@@ -24,7 +24,7 @@
 WITH A AS
 (
 	SELECT 
-	 -- New Town Square office in 3 different SRS
+	 -- Newtown Square office in 3 different SRS
 	 NEW ST_Point('POINT(-75.4153618 39.9880211)') AS NS,
 	 NEW ST_Point('POINT(-75.4153618 39.9880211)', 1000004326) AS NS_1000004326,
 	 NEW ST_Point('POINT(-75.4153618 39.9880211)', 4326) AS NS_4326,	  
