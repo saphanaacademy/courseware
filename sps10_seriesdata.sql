@@ -87,22 +87,6 @@ GROUP BY SENSOR, TIMER_DAY;
 
 --------------------------------------
 --
--- first last nth using stock table
---
---------------------------------------
-
-SELECT DISTINCT
-TO_DATE(MIN(DAY_TIME)) AS "DATE",
- FIRST_VALUE("OPEN" ORDER BY DAY_TIME) AS "OPEN",
- LAST_VALUE("CLOSE" ORDER BY DAY_TIME) AS "CLOSE",
- NTH_VALUE("HIGH", 195 ORDER BY DAY_TIME) AS "MID_DAY"
-FROM SERIES_DATA.STOCK
-GROUP BY SERIES_ROUND(DAY_TIME, 'INTERVAL 1 DAY', ROUND_DOWN)
-ORDER BY "DATE";
-
-
---------------------------------------
---
 -- dealing with missing data using approximations
 --
 --------------------------------------
@@ -148,6 +132,22 @@ ORDER BY TIMER ASC;
 
 --------------------------------------
 --
+-- first last nth using stock table
+--
+--------------------------------------
+
+SELECT DISTINCT
+TO_DATE(MIN(DAY_TIME)) AS "DATE",
+ FIRST_VALUE("OPEN" ORDER BY DAY_TIME) AS "OPEN",
+ LAST_VALUE("CLOSE" ORDER BY DAY_TIME) AS "CLOSE",
+ NTH_VALUE("HIGH", 195 ORDER BY DAY_TIME) AS "MID_DAY"
+FROM SERIES_DATA.STOCK
+GROUP BY SERIES_ROUND(DAY_TIME, 'INTERVAL 1 DAY', ROUND_DOWN)
+ORDER BY "DATE";
+
+
+--------------------------------------
+--
 -- exponential smoothing, single & double
 --
 --------------------------------------
@@ -172,62 +172,6 @@ SELECT TIMER, TMP,
 FROM WEATHER_DAILY_AVG
 WHERE TMP >= 0
 ORDER BY TIMER;
-
-
---------------------------------------
---
--- weighted moving average
---
---------------------------------------
-
--- also see chart in pdf
-
-WITH WEATHER_DAILY_HORIZONTAL_AGG AS (
-	SELECT SENSOR, 
-	 SERIES_ROUND(TIMER, 'INTERVAL 1 DAY', ROUND_DOWN) AS TIMER, 
-	 TMP 
-	FROM SERIES_DATA.WEATHER_HOURLY
-),
-WEATHER_DAILY_AVG AS (
-	SELECT SENSOR, TIMER, MAX(TMP) AS TMP
-	FROM WEATHER_DAILY_HORIZONTAL_AGG
-	WHERE SENSOR = 'OTM'
-	GROUP BY SENSOR, TIMER
-)
-SELECT *,
- weighted_avg(TMP) OVER (ORDER BY TIMER ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) 
-FROM WEATHER_DAILY_AVG;
-
-
---------------------------------------
---
--- auto correlation
---
---------------------------------------
-
--- also see chart in pdf
--- there is also a cross correlation function to compare two series...please see help for more info
-
-SELECT TMP_SEQ_CORR, ordinality AS LAG
-FROM unnest((
-SELECT auto_corr(TMP, 240 ORDER BY TIMER)
-FROM SERIES_DATA.WEATHER_HOURLY
-WHERE SENSOR = 'OTM'
-)) WITH ORDINALITY AS WEATHER_HOURLY_AUTO_CORR(TMP_SEQ_CORR);
-
-
---------------------------------------
---
--- random partition
---
---------------------------------------
-
---stratified partitioning with fractional partition sizes (70% training, 20% validation, 10% test)
--- https://en.wikipedia.org/wiki/Stratified_sampling
-
-SELECT *,
-random_partition(0.7, 0.2, 0.1, 42) OVER (PARTITION BY SENSOR) AS RND_PARTN
-FROM SERIES_DATA.WEATHER_HOURLY;
 
 
 --------------------------------------
@@ -335,3 +279,59 @@ SELECT
 FROM UNNEST(
 	(SELECT DFT(READING_AMPLITUDE, 4096 ORDER BY TIMER).AMPLITUDE FROM SERIES_DATA.VIBRATION)
 ) WITH ORDINALITY AS UNNESTED_DFT(DFT_AMPLITUDE);
+
+
+--------------------------------------
+--
+-- weighted moving average
+--
+--------------------------------------
+
+-- also see chart in pdf
+
+WITH WEATHER_DAILY_HORIZONTAL_AGG AS (
+	SELECT SENSOR, 
+	 SERIES_ROUND(TIMER, 'INTERVAL 1 DAY', ROUND_DOWN) AS TIMER, 
+	 TMP 
+	FROM SERIES_DATA.WEATHER_HOURLY
+),
+WEATHER_DAILY_AVG AS (
+	SELECT SENSOR, TIMER, MAX(TMP) AS TMP
+	FROM WEATHER_DAILY_HORIZONTAL_AGG
+	WHERE SENSOR = 'OTM'
+	GROUP BY SENSOR, TIMER
+)
+SELECT *,
+ weighted_avg(TMP) OVER (ORDER BY TIMER ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) 
+FROM WEATHER_DAILY_AVG;
+
+
+--------------------------------------
+--
+-- auto correlation
+--
+--------------------------------------
+
+-- also see chart in pdf
+-- there is also a cross correlation function to compare two series...please see help for more info
+
+SELECT TMP_SEQ_CORR, ordinality AS LAG
+FROM unnest((
+SELECT auto_corr(TMP, 240 ORDER BY TIMER)
+FROM SERIES_DATA.WEATHER_HOURLY
+WHERE SENSOR = 'OTM'
+)) WITH ORDINALITY AS WEATHER_HOURLY_AUTO_CORR(TMP_SEQ_CORR);
+
+
+--------------------------------------
+--
+-- random partition
+--
+--------------------------------------
+
+--stratified partitioning with fractional partition sizes (70% training, 20% validation, 10% test)
+-- https://en.wikipedia.org/wiki/Stratified_sampling
+
+SELECT *,
+random_partition(0.7, 0.2, 0.1, 42) OVER (PARTITION BY SENSOR) AS RND_PARTN
+FROM SERIES_DATA.WEATHER_HOURLY;
