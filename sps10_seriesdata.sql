@@ -71,7 +71,7 @@ GROUP BY BUCKET;
 
 ------------------------------
 
--- using round_down for series horizontal aggregation, hourly to daily
+-- using series round for series horizontal aggregation, hourly to daily
 
 WITH WEATHER_DAILY AS (
 	SELECT SENSOR, 
