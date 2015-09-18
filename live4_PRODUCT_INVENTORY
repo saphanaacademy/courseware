@@ -1,3 +1,6 @@
+-- run this as LIVE4 user to create the PRODUCT_INVENTORY view
+-- the view shows the current inventory of every product for each store
+
 DROP VIEW LIVE4.PRODUCT_INVENTORY;
 
 CREATE VIEW LIVE4.PRODUCT_INVENTORY AS
