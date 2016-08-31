@@ -1,0 +1,54 @@
+creation of external view in abap repo
+
+ZV##_AIRPRTSERV
+
+External view to HANA Airport Services view
+
+browse for DEV
+
+
+
+creation of geo and service view
+
+ZX##_I_AirportGeoServ
+
+Airport geo and service, private view, VDM interface view
+
+@AbapCatalog.sqlViewName: 'ZX##_IAIRPORTGS'
+@AccessControl.authorizationCheck: #NOT_REQUIRED
+@EndUserText.label: 'Airport geo and service'
+@Analytics.dataCategory: #DIMENSION
+@VDM.viewType: #BASIC
+@ObjectModel.representativeKey: 'airportcode'
+
+define view ZX##_I_AirportGeoServ as select from zv##_airprtserv {
+    key zv##_airprtserv.airportcode, 
+    @Semantics.geoLocation.latitude: true
+    zv##_airprtserv.airportlat, 
+    @Semantics.geoLocation.longitude: true
+    zv##_airprtserv.airportlon, 
+    @Semantics.url
+    zv##_airprtserv.airportservice
+}
+
+
+
+
+creation of extension view
+
+ZX##_E_AirportQGS
+
+Airport, geo and service, VDM extend view
+
+@AbapCatalog.sqlViewAppendName: 'ZX##_EAIRPORTQGS'
+@EndUserText.label: 'Airport, geo and service, VDM extend view'
+extend view ZX##_C_AirportQuery with ZX##_E_AirportQGS
+association to ZX##_I_AirportGeoServ as _AirportGS
+    on $projection.acx  = _AirportGS.airportcode
+{
+    ZX##_I_Airport.airport as acx,
+    _AirportGS.airportcode, 
+    _AirportGS.airportlat, 
+    _AirportGS.airportlon, 
+    _AirportGS.airportservice
+}
