@@ -1,0 +1,74 @@
+################
+# SDA & Hadoop #
+################
+
+# Make sure hosts.ini changed on windows machine to point to correct IP.
+
+# Make sure hosts changed on Linux to point to correct IP. Leave machine name.
+
+sudo su -
+vi /etc/hosts
+su - cluster_admin
+sudo /usr/sbin/ambari-agent restart
+sudo /usr/sbin/ambari-server restart
+
+# Load some data into Hive ;
+su - hive
+wget https://www.dropbox.com/s/h8b04ej9r2dopa2/SHA_create_employee_table.sql?dl=0 -O SHA_create_employee_table.sql
+wget https://www.dropbox.com/s/tj59coispq9kb8g/SHA_Employee.dat?dl=0 -O SHA_Employee.dat
+
+hive -f SHA_create_employee_table.sql
+
+# hdfs dfs -rm /apps/hive/warehouse/sha.db/employee
+# hdfs dfs -rmr /apps/hive/warehouse/sha.db/
+# hdfs dfs -ls /apps/hive/warehouse/
+hdfs dfs -mkdir /apps/hive/warehouse/sha.db/
+hdfs dfs -put SHA_Employee.dat /apps/hive/warehouse/sha.db/employee
+hdfs dfs -ls /apps/hive/warehouse/sha.db/employee
+hdfs dfs -chown -R hive:hdfs /apps/hive/warehouse/sha.db
+
+# Test Hive ;
+hive
+show databases
+use sha
+show tables
+select * from employee
+exit
+exit
+
+/Hive/Configs/Settings/"Run as end user instead of hive user" = False.
+
+# Install DP Agent.
+# Mention DP Server needs to be enabled.
+
+Place JAR in folder ;
+http://repo.hortonworks.com/content/repositories/releases/org/apache/hive/hive-jdbc/
+
+GRANT CREATE REMOTE SOURCE TO DEVUSER;
+GRANT ADAPTER ADMIN TO DEVUSER;
+GRANT AGENT ADMIN TO DEVUSER;
+
+# Create Remote Data Source.
+
+DROP REMOTE SOURCE "Hadoop" CASCADE;
+
+CREATE REMOTE SOURCE "Hadoop" ADAPTER "HiveAdapter" AT LOCATION AGENT "SDI_AGENT"
+CONFIGURATION
+'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ConnectionProperties name="configurations">
+    <PropertyGroup name="connectionInfo">
+        <PropertyEntry name="HOST">??.??.??.??</PropertyEntry>
+        <PropertyEntry name="PORT">10000</PropertyEntry>
+        <PropertyEntry name="DB_NAME">sha</PropertyEntry>
+        <PropertyEntry name="VERSION">1.2.1</PropertyEntry>
+    </PropertyGroup>
+    <PropertyGroup name="security">
+            <PropertyEntry name="USE_SSL">false</PropertyEntry>
+    </PropertyGroup>
+</ConnectionProperties>'
+WITH CREDENTIAL TYPE 'PASSWORD' USING
+'<CredentialEntry name="credential">
+    <user>hive</user>
+    <password>hive</password>
+</CredentialEntry>';
+
