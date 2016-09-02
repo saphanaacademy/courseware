@@ -65,9 +65,15 @@ create table xtra_test_table (a1 int, a2 int, a3 string)
 using com.sap.spark.vora
 options (paths "/user/cluster_admin/test.csv")
 
-++++++++++++++++++++++++
-+ TO USE VORA MODELLER +
-++++++++++++++++++++++++
++++++++++++++++++
++ VORA MODELLER +
++++++++++++++++++
 
 https://github.com/saphanaacademy/Vora/blob/master/Vora_1.2_VoraTools.txt
+
+++++++++++++++++++++
++ VORA HIERARCHIES +
+++++++++++++++++++++
+
+https://github.com/saphanaacademy/Vora/blob/master/Vora_Hierarchies_4_Modeller.txt
 
