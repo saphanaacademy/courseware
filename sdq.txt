@@ -1,0 +1,54 @@
+###################
+# CLEANSE / MATCH #
+###################
+
+# Script Server
+# US Add Directories
+
+GRANT EXECUTE ON "_SYS_REPO"."TEXT_ACCESSOR" TO DEVUSER;
+GRANT EXECUTE ON "_SYS_REPO"."MULTI_TEXT_ACCESSOR" TO DEVUSER;
+
+# AS DEVUSER USER 
+# GRANT SELECT, INSERT, UPDATE, DELETE, EXECUTE ON SCHEMA DEVUSER to _SYS_REPO WITH GRANT OPTION;
+
+DROP TABLE "DEVUSER"."EMPLOYEE_ADDRESS" CASCADE;
+CREATE COLUMN TABLE "DEVUSER"."EMPLOYEE_ADDRESS" ("STREETNUMBER" INTEGER CS_INT,
+	 "STREET" NVARCHAR(200),
+	 "LOCALITY" NVARCHAR(200),
+	 "STATE" NVARCHAR(200),
+	 "COUNTRY" NVARCHAR(200)) UNLOAD PRIORITY 5 AUTO MERGE ;
+
+TRUNCATE TABLE "DEVUSER"."EMPLOYEE_ADDRESS";
+insert into "DEVUSER"."EMPLOYEE_ADDRESS" values(555,'Madison Av 555 NY','NYC','NY','US');
+insert into "DEVUSER"."EMPLOYEE_ADDRESS" values(555,'Madison Ave','New York','NY','America');
+insert into "DEVUSER"."EMPLOYEE_ADDRESS" values(95,'Morton St.','Manhattan','NY','US');
+insert into "DEVUSER"."EMPLOYEE_ADDRESS" values(95,'Morten Street','New York','NY','USA');
+
+Login to http://hana:8000/sap/hana/ide/editor/ as DEVUSER
+
+New Flowgraph called "Cleanse"
+
+Make all content types as ADDRESSLINE
+
+Customize Manually
+
+Address Basic/Country 
+Address Basic/Region
+Address Basic/Postcode
+Address Extended/Subregion
+Address Extended/Streetname (Expanded)
+
+Order Columns as ;
+
+STREETNUMBER
+STD_ADDR_PRIM_NAME_FULL
+STD_ADDR_REGION2
+STD_ADDR_REGION
+STD_ADDR_POSTCODE_FULL
+STD_ADDR_COUNTRY_NAME
+
+TARGET is CLEANSED_ADDRESS
+
+Login to http://hana:8000/sap/hana/ide/catalog/ as DEVUSER to see results
+
+New Flowgraph called "Match"
