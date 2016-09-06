@@ -1,18 +1,66 @@
-creation of external view in abap repo
+**************************************************************
+*
+*   existing calc view in hana > devuser > content
+*
+**************************************************************
 
-ZV##_AIRPRTSERV
-
-External view to HANA Airport Services view
-
-browse for DEV
+- in eclipse open SAP HANA Modeller perspective 
+- in HDB DEVUSER connection open Content > DevUser package > Calc Views > DEVUSERCV
+* notes on calc views for later use in cds
 
 
+**************************************************************
+*
+*   review of existing vdm in abap perspective
+*
+**************************************************************
 
-creation of geo and service view
+- in eclipse switch to ABAP Perspective
+- in Project Explorer navigate to Favourite Packages > $TMP > CDS > Data Def
 
-ZX##_I_AirportGeoServ
+- open ZX##_I_Airport cds view
+* intro into cds syntax
 
-Airport geo and service, private view, VDM interface view
+- open ZX##_C_AirportQuery cds view
+* more cds syntax
+
+
+**************************************************************
+*
+*   create external view in abap repo
+*
+**************************************************************
+
+- right click on $TMP folder and choose New > Other ABAP Repo Object
+	- start typing in dictionary & select Dictionary View
+	- change view type from Dictionary View to External View
+
+name:	ZV##_AIRPRTSERV
+	changing ## to your user #'s
+
+descr:	External view to HANA Airport Services view
+
+- in HANA View type in "dev" and press Browse and double click on DEVUSER.DEVUSERCV
+- press Finish
+* notes on external views
+
+- press Activate
+- in Project Explorer open Dictionary folder > Views
+	right click on ZV##_AIRPRTSERV
+	choose Open Data Preview
+
+
+**************************************************************
+*
+*   create cds basic geo and service view
+*
+**************************************************************
+
+name:	ZX##_I_AirportGeoServ
+
+descr:	Airport geo and service, private view, VDM interface view
+
+* your final syntax will looks something like this: 
 
 @AbapCatalog.sqlViewName: 'ZX##_IAIRPORTGS'
 @AccessControl.authorizationCheck: #NOT_REQUIRED
@@ -32,13 +80,17 @@ define view ZX##_I_AirportGeoServ as select from zv##_airprtserv {
 }
 
 
+**************************************************************
+*
+*   create cds to extend airport query view
+*
+**************************************************************
 
+name:	ZX##_E_AirportQGS
 
-creation of extension view
+descr:	Airport, geo and service, VDM extend view
 
-ZX##_E_AirportQGS
-
-Airport, geo and service, VDM extend view
+* your final syntax will looks something like this: 
 
 @AbapCatalog.sqlViewAppendName: 'ZX##_EAIRPORTQGS'
 @EndUserText.label: 'Airport, geo and service, VDM extend view'
