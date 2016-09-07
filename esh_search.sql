@@ -1,6 +1,6 @@
-###################################
-# ESH_SEARCH/CONFIG
-###################################
+#####################
+# ESH_SEARCH/CONFIG #
+#####################
 
 DROP USER ESH_DEMO CASCADE;
 CREATE USER ESH_DEMO PASSWORD Password1;
