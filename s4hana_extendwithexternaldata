@@ -10,19 +10,6 @@
 
 **************************************************************
 *
-*   review of existing vdm in abap perspective
-*
-**************************************************************
-
-- in eclipse switch to ABAP Perspective
-- in Project Explorer navigate to Favourite Packages > $TMP > CDS > Data Def
-- open ZX##_I_Airport cds view
-
-- open ZX##_C_AirportQuery cds view
-
-
-**************************************************************
-*
 *   create external view in abap repo
 *
 **************************************************************
@@ -43,6 +30,19 @@ descr:	External view to HANA Airport Services view
 - in Project Explorer open Dictionary folder > Views
 	right click on ZV##_AIRPRTSERV
 	choose Open Data Preview
+	
+	
+**************************************************************
+*
+*   review of existing vdm in abap perspective
+*
+**************************************************************
+
+- in eclipse switch to ABAP Perspective
+- in Project Explorer navigate to Favourite Packages > $TMP > CDS > Data Def
+- open ZX##_I_Airport cds view
+
+- open ZX##_C_AirportQuery cds view	
 
 
 **************************************************************
