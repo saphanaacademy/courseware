@@ -91,26 +91,6 @@ CALL ESH_CONFIG('[{
 CALL ESH_SEARCH('[ "/$metadata"]', ?);
 -- view in http://codebeautify.org/xmlviewer
 
--- .xsapp
-{}
-
--- .xsaccess
-{"exposed": true,"authentication": [{"method" : "Basic"}]}
-
--- services.xsodata
-service namespace "ESH_DEMO"
-{
- "ESH_DEMO"."V_DOCUMENTS" as "DOCUMENTS"
-  key ("ID")
-  create forbidden update forbidden delete forbidden;
-}
-
--- OData Queries
-http://hana:8000/ESH_DEMO/services.xsodata/
-http://hana:8000/ESH_DEMO/services.xsodata/$metadata
-http://hana:8000/ESH_DEMO/services.xsodata/DOCUMENTS?search=football&facets=all&$format=json
-http://hana:8000/ESH_DEMO/services.xsodata/DOCUMENTS?search=19th+Century&facets=all&$format=json
-
 -- show following in http://codebeautify.org/jsonviewer# viewer 
 
 CALL ESH_SEARCH('[ 
@@ -131,3 +111,27 @@ CALL ESH_SEARCH('[
 
 -- following explains esh_search functions ;
 -- http://help.sap.com/saphelp_hanaplatform/helpdata/en/54/fad3bd725141d083d2a48b674bdd86/content.htm?frameset=/en/b2/8d8279c30740fb9e08334ff7ad9cb7/frameset.htm&current_toc=/en/fd/c71ac6a10b43cd97ff1bee7a3c3aab/plain.htm&node_id=72
+
+##############################################
+# Can also view in OData (as normal in HANA) #
+##############################################
+
+-- .xsapp
+{}
+
+-- .xsaccess
+{"exposed": true,"authentication": [{"method" : "Basic"}]}
+
+-- services.xsodata
+service namespace "ESH_DEMO"
+{
+ "ESH_DEMO"."V_DOCUMENTS" as "DOCUMENTS"
+  key ("ID")
+  create forbidden update forbidden delete forbidden;
+}
+
+-- OData Queries
+http://hana:8000/ESH_DEMO/services.xsodata/
+http://hana:8000/ESH_DEMO/services.xsodata/$metadata
+http://hana:8000/ESH_DEMO/services.xsodata/DOCUMENTS?search=football&facets=all&$format=json
+http://hana:8000/ESH_DEMO/services.xsodata/DOCUMENTS?search=19th+Century&facets=all&$format=json
