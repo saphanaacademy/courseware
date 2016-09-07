@@ -6,7 +6,6 @@
 
 - in eclipse open SAP HANA Modeller perspective 
 - in HDB DEVUSER connection open Content > DevUser package > Calc Views > DEVUSERCV
-* notes on calc views for later use in cds
 
 
 **************************************************************
@@ -17,12 +16,9 @@
 
 - in eclipse switch to ABAP Perspective
 - in Project Explorer navigate to Favourite Packages > $TMP > CDS > Data Def
-
 - open ZX##_I_Airport cds view
-* intro into cds syntax
 
 - open ZX##_C_AirportQuery cds view
-* more cds syntax
 
 
 **************************************************************
@@ -42,7 +38,6 @@ descr:	External view to HANA Airport Services view
 
 - in HANA View type in "dev" and press Browse and double click on DEVUSER.DEVUSERCV
 - press Finish
-* notes on external views
 
 - press Activate
 - in Project Explorer open Dictionary folder > Views
@@ -56,11 +51,18 @@ descr:	External view to HANA Airport Services view
 *
 **************************************************************
 
+- go to $TMP > Core Data Services > right click on Data Definitions 
+	- choose New Data Definition
+
 name:	ZX##_I_AirportGeoServ
 
 descr:	Airport geo and service, private view, VDM interface view
 
-* your final syntax will looks something like this: 
+- click Next > Next & ensure default template of Define View is selected
+
+- click on Finish
+
+* your final syntax will looks something like this...eventually 
 
 @AbapCatalog.sqlViewName: 'ZX##_IAIRPORTGS'
 @AccessControl.authorizationCheck: #NOT_REQUIRED
@@ -71,12 +73,12 @@ descr:	Airport geo and service, private view, VDM interface view
 
 define view ZX##_I_AirportGeoServ as select from zv##_airprtserv {
     key zv##_airprtserv.airportcode, 
+    @Semantics.url
+    zv##_airprtserv.airportservice
     @Semantics.geoLocation.latitude: true
     zv##_airprtserv.airportlat, 
     @Semantics.geoLocation.longitude: true
     zv##_airprtserv.airportlon, 
-    @Semantics.url
-    zv##_airprtserv.airportservice
 }
 
 
@@ -86,11 +88,15 @@ define view ZX##_I_AirportGeoServ as select from zv##_airprtserv {
 *
 **************************************************************
 
+- right click on Data Definitions folder again and choose New Data Definition
+- click Next Next
+- in Templates this time select Extend View
+
 name:	ZX##_E_AirportQGS
 
 descr:	Airport, geo and service, VDM extend view
 
-* your final syntax will looks something like this: 
+* your final syntax is going to look something like this later: 
 
 @AbapCatalog.sqlViewAppendName: 'ZX##_EAIRPORTQGS'
 @EndUserText.label: 'Airport, geo and service, VDM extend view'
