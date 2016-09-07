@@ -77,3 +77,9 @@ https://github.com/saphanaacademy/Vora/blob/master/Vora_1.2_VoraTools.txt
 
 https://github.com/saphanaacademy/Vora/blob/master/Vora_Hierarchies_4_Modeller.txt
 
++++++++++++++++++++++++++
++ VORA JOINING TO HANA  +
++++++++++++++++++++++++++
+
+https://github.com/saphanaacademy/Vora/blob/master/Vora_Join_2_HANA.txt
+
