@@ -60,7 +60,7 @@ SELECT COUNT(DISTINCT ID) AS COUNT FROM V_DOCUMENTS WHERE CONTAINS(*,'football')
 SELECT DISTINCT ID, TITLE, CONTENT FROM V_DOCUMENTS WHERE CONTAINS(*,'football');
 SELECT AUTHOR, COUNT(DISTINCT ID) AS COUNT FROM V_DOCUMENTS WHERE CONTAINS(*,'football') GROUP BY AUTHOR;
 
--- show setting preferences so can view JSON
+-- change setting preferences so can view JSON (Windows\Preferences; SAP HANA\Runtime\Result; check "Enable zoom of LOB columns")
 
 CALL ESH_CONFIG('[{
   "uri":    "~/$metadata/EntitySets(ESH_DEMO/V_DOCUMENTS)",
