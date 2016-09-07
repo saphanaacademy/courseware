@@ -107,31 +107,27 @@ service namespace "ESH_DEMO"
 
 -- OData Queries
 http://hana:8000/ESH_DEMO/services.xsodata/
-
 http://hana:8000/ESH_DEMO/services.xsodata/$metadata
-
 http://hana:8000/ESH_DEMO/services.xsodata/DOCUMENTS?search=football&facets=all&$format=json
-
 http://hana:8000/ESH_DEMO/services.xsodata/DOCUMENTS?search=19th+Century&facets=all&$format=json
 
--- following explains esh_search functions ;
--- http://help.sap.com/saphelp_hanaplatform/helpdata/en/54/fad3bd725141d083d2a48b674bdd86/content.htm?frameset=/en/b2/8d8279c30740fb9e08334ff7ad9cb7/frameset.htm&current_toc=/en/fd/c71ac6a10b43cd97ff1bee7a3c3aab/plain.htm&node_id=72
+-- show following in http://codebeautify.org/jsonviewer# viewer 
 
 CALL ESH_SEARCH('[ 
 "/$all?facets=all&$filter=Search.search(query=''football'')"
 ]', ?);
 
--- show viewer (http://jsonviewer.stack.hu/)
-
 CALL ESH_SEARCH('[ 
 "/$all?facets=all&$filter=Search.search(query=''football AND 19th+Century'')"
-]', ?)
-
+]', ?);
 
 CALL ESH_SEARCH('[ 
 "/$all?facets=all&$filter=AUTHOR eq ''Franz'' and Search.search(query=''football'')"
-]', ?)
+]', ?);
 
 CALL ESH_SEARCH('[ 
 "/$all?facets=all&$filter=Search.search(query=''football'')&$count=true"
-]', ?)
+]', ?);
+
+-- following explains esh_search functions ;
+-- http://help.sap.com/saphelp_hanaplatform/helpdata/en/54/fad3bd725141d083d2a48b674bdd86/content.htm?frameset=/en/b2/8d8279c30740fb9e08334ff7ad9cb7/frameset.htm&current_toc=/en/fd/c71ac6a10b43cd97ff1bee7a3c3aab/plain.htm&node_id=72
