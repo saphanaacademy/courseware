@@ -1,7 +1,7 @@
 ----------------------------
 --                        --
 --                        --
---  Geo-Spatial Overview  --
+--  Spatial Overview  --
 --                        --
 --                        --
 ----------------------------
@@ -24,7 +24,7 @@ ORDER BY "ROWID" ASC;
 
 -------------------------------------------------------
 --
---  create table with 3 different geo-spatial systems
+--  create table with 3 different spatial systems
 --
 -------------------------------------------------------
 
@@ -307,7 +307,7 @@ INSERT INTO GEO_SPATIAL.GEOTYPES VALUES (
 
 --------------------------------
 --
---  multi-dimensional geo data
+--  multi-dimensional spatial data
 --
 --------------------------------
 
