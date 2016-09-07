@@ -70,26 +70,6 @@ CALL ESH_CONFIG('[{
 
 -- various esh_config options can be viewed from ;
 -- http://help.sap.com/saphelp_hanaplatform/helpdata/en/9d/659b938f83495b9ca409a31cb2e400/content.htm?frameset=/en/0c/2af3198cdf4218bb477657f5f3ac33/frameset.htm&current_toc=/en/fd/c71ac6a10b43cd97ff1bee7a3c3aab/plain.htm&node_id=53
-
--- without facet
-CALL ESH_CONFIG('[{
-"uri":    "~/$metadata/EntitySets",
-"method": "PUT",
-"content":{ 
-	"Fullname": "ESH_DEMO/V_DOCUMENTS",
-	"EntityType": {
-		"@Search.searchable": true,
-		"@EnterpriseSearch.enabled": true,
-		"Properties": [
-			{"Name": "ID",      "@Search.defaultSearchElement": true,             "@EnterpriseSearch.key": true, "@EnterpriseSearch.presentationMode": [ "TITLE" ]},
-			{"Name": "TITLE",   "@Search.defaultSearchElement": true,             "@EnterpriseSearch.highlighted.enabled": true, "@Search.ranking":	"HIGH","@EnterpriseSearch.presentationMode": [ "TITLE" ]},
-			{"Name": "CONTENT", "@Search.defaultSearchElement": true,             "@EnterpriseSearch.snippets.enabled": true, "@Search.fuzzinessThreshold": 0.9, "@Search.ranking": "MEDIUM","@EnterpriseSearch.presentationMode": [ "DETAIL" ]}
-		]
-	}
-}
-}]',?);
- 
--- final
 CALL ESH_CONFIG('[{
 "uri":    "~/$metadata/EntitySets",
 "method": "PUT",
