@@ -111,8 +111,6 @@ CALL ESH_CONFIG('[{
 CALL ESH_SEARCH('[ "/$metadata"]', ?);
 -- view in http://codebeautify.org/xmlviewer
 
--- show setting preferences so can view JSON
-
 -- .xsapp
 {}
 
