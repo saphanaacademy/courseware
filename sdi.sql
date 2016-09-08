@@ -72,7 +72,7 @@ CREATE COLUMN TABLE "ONLINE_PROSPECTS" ("COUNTRY" NVARCHAR(100),
 	 "Postcode" NVARCHAR(100),
 	 "Email" NVARCHAR(100),
 	 "Phone" NVARCHAR(100),
-	 "Date" NVARCHAR(100)) UNLOAD PRIORITY 5 AUTO MERGE
+	 "Date" NVARCHAR(100)) UNLOAD PRIORITY 5 AUTO MERGE;
 
 insert into "ONLINE_PROSPECTS" values ('JP','中澤敬尚',null,'清田区　土木センター','平岡二条','4丁目',null,'清田区','北海道','48616',null,null,null);
 insert into "ONLINE_PROSPECTS" values ('Japan','中澤敬尚',null,'清田区　土木センター','平岡二条','4丁目',null,'清田区','北海道','48616',null,null,null);
