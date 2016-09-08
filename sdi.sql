@@ -29,14 +29,14 @@ INSERT INTO "DATAMASKING_INPUT" VALUES ('FR','AMY DES LIGNERIES','SCHMIT SAICA',
 SELECT * FROM "DATAMASKING_INPUT" ;
 
 1.	Mask Out the NAME_LINE Column everything except first 3 characters using masking character X
-ALLEN GONZALEX  → ALLXX XXXXXXXX
+	ALLEN GONZALEX  → ALLXX XXXXXXXX
 
 2.	Set pattern variance  on FIRM column 
-a.	1-5 characters to Value A
-b.	6-10 substring  to Values Min:1 to Max :5
-c.	Preserve data from 11- 20 
-d.	Default from 21-100
-JAGJANANI TEXTILES LIMITED  → AAAAA2TEXTILES LLSZEAP
+	a.	1-5 characters to Value A
+	b.	6-10 substring  to Values Min:1 to Max :5
+	c.	Preserve data from 11- 20 
+	d.	Default from 21-100
+		JAGJANANI TEXTILES LIMITED  → AAAAA2TEXTILES LLSZEAP
 
 -- Some other examples 
 
