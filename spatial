@@ -10,7 +10,7 @@
 -- choose Open SQL Console
 
 
--- look at existing records in a non "spatial" table by running the following query
+-- look at existing records in a non spatial table by running the following query
 
 SELECT TOP 10
 	"ROWID",
@@ -285,8 +285,9 @@ INSERT INTO GEO_SPATIAL.GEOTYPES VALUES (
 );
 
 SELECT	*,
-	SHAPE.ST_AsWKT() AS SHAPE
+	SHAPE.ST_AsSVG() AS SHAPE
 FROM GEO_SPATIAL.GEOTYPES;
+
 
 -- polygon with issues
 INSERT INTO GEO_SPATIAL.GEOTYPES VALUES (
