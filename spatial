@@ -43,7 +43,7 @@ ORDER BY "ROWID" ASC;
 
 -------------------------------------------------------
 --
---  create table with 3 different spatial systems
+--  create table to have columns of 3 spatial systems
 --
 -------------------------------------------------------
 
@@ -74,12 +74,10 @@ INSERT INTO GEO_SPATIAL.CENSUS_GEO (
 	FROM GEO_SPATIAL.CENSUS
 );
 
-SELECT * FROM GEO_SPATIAL.CENSUS_GEO;
-
 
 -------------------------------------------------
 --
---  viewing spatial data from 3 different SRS's  
+--  viewing spatial data from the 3 different SRS's  
 --
 -------------------------------------------------
 
@@ -101,41 +99,12 @@ SELECT	TOP 10 "ROWID",
 	COORDINATES_LAT, 
 	LONLAT_POINT_CARTESIAN.ST_AsWKT(),
 	LONLAT_POINT_CARTESIAN.ST_AsEWKT(),
-	LONLAT_POINT_PLANAR.ST_AsWKB(), 
-	LONLAT_POINT_PLANAR.ST_AsBinary(),
-	LONLAT_POINT_SPHEROID.ST_AsGeoJSON(),
-	LONLAT_POINT_SPHEROID.ST_AsSVG()
+	LONLAT_POINT_CARTESIAN.ST_AsGeoJSON(),
+	LONLAT_POINT_CARTESIAN.ST_AsSVG()
 FROM GEO_SPATIAL.CENSUS_GEO
 ORDER BY "ROWID" ASC; 
  
  
--------------------------------------------------------------------------
---
---  adding geo-spatial data when there is a binary column for the point
---
--------------------------------------------------------------------------
-
-ALTER TABLE GEO_SPATIAL.CENSUS_BINARY DROP (LONLAT_POINT);
-
-SELECT * FROM GEO_SPATIAL.CENSUS_BINARY;
-
--- adding a geo (point) column and converting binary data into spatial type point data
-
-ALTER TABLE GEO_SPATIAL.CENSUS_BINARY ADD (LONLAT_POINT ST_POINT(0));
-
-UPDATE GEO_SPATIAL.CENSUS_BINARY SET LONLAT_POINT = (
-	WITH C AS (
-		SELECT	"ROWID", 
-			ST_GeomFromWKB(LONLAT_BINARY) AS NEWPOINT 
-		FROM GEO_SPATIAL.CENSUS_BINARY
-	) 
-	SELECT NEWPOINT FROM C
-	WHERE CENSUS_BINARY."ROWID" = C."ROWID"
-);
-
-SELECT *, LONLAT_POINT.ST_AsWKT() FROM GEO_SPATIAL.CENSUS_BINARY;
-
-
 -------------------------------------------------------------
 --
 --  doing some distance calculations using different SRID's
@@ -155,9 +124,10 @@ WITH A AS (
 		NEW ST_Point('POINT(-79.379085 43.643676)', 4326) AS WCH_SPHEROID
 	FROM DUMMY
 )
-SELECT	MO.ST_AsWKT(),
+SELECT	
+	MO.ST_AsWKT(),
 	WCH.ST_AsWKT(),
-	WCH.ST_DISTANCE(MO, 'kilometer') AS DIST_0,
+	WCH.ST_DISTANCE(MO, 'kilometer') AS DIST_CARTESIAN,
 	WCH_PLANAR.ST_DISTANCE(MO_PLANAR, 'kilometer') AS DIST_PLANAR,
 	WCH_SPHEROID.ST_DISTANCE(MO_SPHEROID, 'kilometer') AS DIST_SPHEROID
 FROM A;
