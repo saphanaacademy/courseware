@@ -38,23 +38,22 @@ c.	Preserve data from 11- 20
 d.	Default from 21-100
 JAGJANANI TEXTILES LIMITED  → AAAAA2TEXTILES LLSZEAP
 
-3.	Set Date Variance on Date1  and Date 2 columns
-a)	Fixed days 5 with Minimum Date set to 07-07-1985 and Max set to 31-12-2001 
-03-07-1986 → 07-07-1985
-b)	Date Range from 01-01-2015 to 02-06-2016
-03-07-1985 → 04-09-2015
+-- Some other examples 
 
-4.	Mask out all characters with 9 in SSN1 field.
-732-45-6543  → 999-99-9999
+-- 3.	Set Date Variance on Date1  and Date 2 columns
+-- a)	Fixed days 5 with Minimum Date set to 07-07-1985 and Max set to 31-12-2001 and 03-07-1986 → 07-07-1985
+-- b)	Date Range from 01-01-2015 to 02-06-2016 and 03-07-1985 → 04-09-2015
 
-5.	Numeric variance on AMOUNT_PURCHASED(decimal) column 
-a)	Variance type percentage of 10 with Min value 500 and Max Value 900
-800 → 728.39186012
-6.	Numeric variance on ORDERID(integer) column 
-b)	Variance type Range between 100 - 200
-23455 → 152
-7.	Mask all characters in EMAIL1 column and maintain format 
-ALLEN.GONZALEX@UM23.edu  → XXXXXXXXXXXXXX@XXXX.XXX
+-- 4.	Mask out all characters with 9 in SSN1 field. 732-45-6543  → 999-99-9999
+
+-- 5.	Numeric variance on AMOUNT_PURCHASED(decimal) column 
+-- a)	Variance type percentage of 10 with Min value 500 and Max Value 900 and 800 → 728.39186012
+
+--6.	Numeric variance on ORDERID(integer) column 
+-- b)	Variance type Range between 100 - 200 and 23455 → 152
+
+-- 7.	Mask all characters in EMAIL1 column and maintain format 
+-- ALLEN.GONZALEX@UM23.edu  → XXXXXXXXXXXXXX@XXXX.XXX
 
 ########################
 # MATCH SURVIVAL RULES #
