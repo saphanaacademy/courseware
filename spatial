@@ -6,24 +6,6 @@
 --                        --
 ----------------------------
 
--- right click on HDB (SYSTEM) hanadb connection
--- choose Open SQL Console
-
-
--- look at existing records in a non spatial table by running the following query
-
-SELECT TOP 10
-	"ROWID",
-	NAME,
-	COORDINATES_LON AS LON,
-	COORDINATES_LAT AS LAT
-FROM GEO_SPATIAL.CENSUS
-ORDER BY "ROWID" ASC;
-
--- highlight GEO_SPATIAL.CENSUS above then right click and 
-	-- choose Show Definition and scroll to bottom of fields
--- note that the "Lon" & "Lat" fields are actually Decimal types
-
 
 ----------------------------------------------------------
 --
@@ -31,8 +13,7 @@ ORDER BY "ROWID" ASC;
 --
 ----------------------------------------------------------
 
-SELECT TOP 10 
-	"ROWID",
+SELECT	TOP 10 "ROWID",
 	NAME,
 	COORDINATES_LON AS LON,
 	COORDINATES_LAT AS LAT, 	
@@ -43,7 +24,7 @@ ORDER BY "ROWID" ASC;
 
 -------------------------------------------------------
 --
---  create table to have columns of 3 spatial systems
+--  create table with 3 different spatial systems
 --
 -------------------------------------------------------
 
@@ -53,15 +34,15 @@ CREATE COLUMN TABLE GEO_SPATIAL.CENSUS_GEO
 	LIKE GEO_SPATIAL.CENSUS WITH NO DATA;
 
 ALTER TABLE GEO_SPATIAL.CENSUS_GEO ADD (
-	LONLAT_POINT_CARTESIAN ST_GEOMETRY(0)
+	LONLAT_POINT_0 ST_GEOMETRY(0)
 );
 
 ALTER TABLE GEO_SPATIAL.CENSUS_GEO ADD (
-	LONLAT_POINT_PLANAR ST_GEOMETRY(1000004326)
+	LONLAT_POINT_1000004326 ST_GEOMETRY(1000004326)
 );
 
 ALTER TABLE GEO_SPATIAL.CENSUS_GEO ADD (
-	LONLAT_POINT_SPHEROID ST_GEOMETRY(4326)
+	LONLAT_POINT_4326 ST_GEOMETRY(4326)
 );
 
 -- inserting spatial type data & point type construction
@@ -74,10 +55,12 @@ INSERT INTO GEO_SPATIAL.CENSUS_GEO (
 	FROM GEO_SPATIAL.CENSUS
 );
 
+SELECT * FROM GEO_SPATIAL.CENSUS_GEO;
+
 
 -------------------------------------------------
 --
---  viewing spatial data from the 3 different SRS's  
+--  viewing spatial data from 3 different SRS's  
 --
 -------------------------------------------------
 
@@ -86,9 +69,9 @@ INSERT INTO GEO_SPATIAL.CENSUS_GEO (
 SELECT	TOP 10 "ROWID", 
 	COORDINATES_LON, 
 	COORDINATES_LAT, 
-	LONLAT_POINT_CARTESIAN, 
-	LONLAT_POINT_PLANAR, 
-	LONLAT_POINT_SPHEROID 
+	LONLAT_POINT_0, 
+	LONLAT_POINT_1000004326, 
+	LONLAT_POINT_4326 
 FROM GEO_SPATIAL.CENSUS_GEO
 ORDER BY "ROWID" ASC;
 
@@ -97,39 +80,67 @@ ORDER BY "ROWID" ASC;
 SELECT	TOP 10 "ROWID", 
 	COORDINATES_LON, 
 	COORDINATES_LAT, 
-	LONLAT_POINT_CARTESIAN.ST_AsWKT(),
-	LONLAT_POINT_CARTESIAN.ST_AsEWKT(),
-	LONLAT_POINT_CARTESIAN.ST_AsGeoJSON(),
-	LONLAT_POINT_CARTESIAN.ST_AsSVG()
+	LONLAT_POINT_0.ST_AsWKT(),
+	LONLAT_POINT_0.ST_AsEWKT(),
+	LONLAT_POINT_1000004326.ST_AsWKB(), 
+	LONLAT_POINT_1000004326.ST_AsBinary(),
+	LONLAT_POINT_4326.ST_AsGeoJSON(),
+	LONLAT_POINT_4326.ST_AsSVG()
 FROM GEO_SPATIAL.CENSUS_GEO
 ORDER BY "ROWID" ASC; 
  
  
+-------------------------------------------------------------------------
+--
+--  adding geo-spatial data when there is a binary column for the point
+--
+-------------------------------------------------------------------------
+
+ALTER TABLE GEO_SPATIAL.CENSUS_BINARY DROP (LONLAT_POINT);
+
+SELECT * FROM GEO_SPATIAL.CENSUS_BINARY;
+
+-- adding a geo (point) column and converting binary data into spatial type point data
+
+ALTER TABLE GEO_SPATIAL.CENSUS_BINARY ADD (LONLAT_POINT ST_POINT(0));
+
+UPDATE GEO_SPATIAL.CENSUS_BINARY SET LONLAT_POINT = (
+	WITH C AS (
+		SELECT	"ROWID", 
+			ST_GeomFromWKB(LONLAT_BINARY) AS NEWPOINT 
+		FROM GEO_SPATIAL.CENSUS_BINARY
+	) 
+	SELECT NEWPOINT FROM C
+	WHERE CENSUS_BINARY."ROWID" = C."ROWID"
+);
+
+SELECT *, LONLAT_POINT.ST_AsWKT() FROM GEO_SPATIAL.CENSUS_BINARY;
+
+
 -------------------------------------------------------------
 --
 --  doing some distance calculations using different SRID's
 --
 -------------------------------------------------------------
 
--- World Cup host to Maidenhead office 
+-- SAP Palo Alto CA to SAP Vancouver BC
 
 WITH A AS (
-	SELECT  -- Maidenhead office in 3 different SRS
-		NEW ST_Point('POINT(-0.745713 51.511867)') AS MO,
-		NEW ST_Point('POINT(-0.745713 51.511867)', 1000004326) AS MO_PLANAR,
-		NEW ST_Point('POINT(-0.745713 51.511867)', 4326) AS MO_SPHEROID,	  
-	 	-- World Cup host in 3 different SRS	 
-		NEW ST_Point('POINT(-79.379085 43.643676)') AS WCH,
-		NEW ST_Point('POINT(-79.379085 43.643676)', 1000004326) AS WCH_PLANAR,	 
-		NEW ST_Point('POINT(-79.379085 43.643676)', 4326) AS WCH_SPHEROID
+	SELECT  -- SAP Palo Alto in 3 different SRS
+		NEW ST_Point('POINT(-122.1463709 37.3989354)') AS PA,
+		NEW ST_Point('POINT(-122.1463709 37.3989354)', 1000004326) AS PA_1000004326,
+		NEW ST_Point('POINT(-122.1463709 37.3989354)', 4326) AS PA_4326,	  
+	 	-- SAP Vancouver in 3 different SRS	 
+		NEW ST_Point('POINT(-123.1208974 49.2766576)') AS VN,
+		NEW ST_Point('POINT(-123.1208974 49.2766576)', 1000004326) AS VN_1000004326,	 
+		NEW ST_Point('POINT(-123.1208974 49.2766576)', 4326) AS VN_4326
 	FROM DUMMY
 )
-SELECT	
-	MO.ST_AsWKT(),
-	WCH.ST_AsWKT(),
-	WCH.ST_DISTANCE(MO, 'kilometer') AS DIST_CARTESIAN,
-	WCH_PLANAR.ST_DISTANCE(MO_PLANAR, 'kilometer') AS DIST_PLANAR,
-	WCH_SPHEROID.ST_DISTANCE(MO_SPHEROID, 'kilometer') AS DIST_SPHEROID
+SELECT	PA.ST_AsWKT(),
+	VN.ST_AsWKT(),
+	VN.ST_DISTANCE(PA, 'kilometer') AS DIST_0,
+	VN_1000004326.ST_DISTANCE(PA_1000004326, 'kilometer') AS DIST_1000004326,
+	VN_4326.ST_DISTANCE(PA_4326, 'kilometer') AS DIST_4326
 FROM A;
 
  
@@ -141,13 +152,13 @@ FROM A;
 
 -- calculations using points within a polygon
 
--- st_within & srid 0 / cartesian
+-- st_within & srid 0
 SELECT 
 SUM(POPULATION_TOTAL) AS POP,
 COUNT(*) AS POINTS
 FROM GEO_SPATIAL.CENSUS_GEO
 WHERE LENGTH(CENSUS_GEO_ID) = 11
-AND LONLAT_POINT_CARTESIAN.ST_Within(NEW ST_Polygon('Polygon(( 
+AND LONLAT_POINT_0.ST_Within(NEW ST_Polygon('Polygon(( 
             -138.9343338012695 40.47433077320648,
             -138.9343338012695 32.89135906381192,
             -100.5920486450195 32.89135906381192,
@@ -155,13 +166,13 @@ AND LONLAT_POINT_CARTESIAN.ST_Within(NEW ST_Polygon('Polygon((
             -138.9343338012695 40.47433077320648
        ))',0)) = 1;
 
--- st_within & srid 1000004326 / planar       
+-- st_within & srid 1000004326       
 SELECT 
 SUM(POPULATION_TOTAL) AS POP,
 COUNT(*) AS POINTS
 FROM GEO_SPATIAL.CENSUS_GEO
 WHERE LENGTH(CENSUS_GEO_ID) = 11
-AND LONLAT_POINT_PLANAR.ST_Within(NEW ST_Polygon('Polygon(( 
+AND LONLAT_POINT_1000004326.ST_Within(NEW ST_Polygon('Polygon(( 
             -138.9343338012695 40.47433077320648,
             -138.9343338012695 32.89135906381192,
             -100.5920486450195 32.89135906381192,
@@ -169,7 +180,7 @@ AND LONLAT_POINT_PLANAR.ST_Within(NEW ST_Polygon('Polygon((
             -138.9343338012695 40.47433077320648
        ))',1000004326)) = 1; 
     
--- st_contains & srid 1000004326 / planar         
+-- st_contains & srid 1000004326           
 SELECT 
 SUM(POPULATION_TOTAL) AS POP,
 COUNT(*) AS POINTS
@@ -181,15 +192,15 @@ AND NEW ST_Polygon('Polygon((
             -100.5920486450195 32.89135906381192,
             -100.5920486450195 40.47433077320648,
             -138.9343338012695 40.47433077320648
-       ))',1000004326).ST_Contains(LONLAT_POINT_PLANAR) = 1;
+       ))',1000004326).ST_Contains(LONLAT_POINT_1000004326) = 1;
 
--- st_covered by & srid 4326 / spheroid       
+-- st_covered by & srid 4326       
 SELECT 
 SUM(POPULATION_TOTAL) AS POP,
 COUNT(*) AS POINTS
 FROM GEO_SPATIAL.CENSUS_GEO
 WHERE LENGTH(CENSUS_GEO_ID) = 11
-AND LONLAT_POINT_SPHEROID.ST_CoveredBy(NEW ST_Polygon('Polygon(( 
+AND LONLAT_POINT_4326.ST_CoveredBy(NEW ST_Polygon('Polygon(( 
             -138.9343338012695 40.47433077320648,
             -138.9343338012695 32.89135906381192,
             -100.5920486450195 32.89135906381192,
@@ -208,12 +219,12 @@ AND LONLAT_POINT_SPHEROID.ST_CoveredBy(NEW ST_Polygon('Polygon((
 
 SELECT	TOP 10 
 	"ROWID", 
- 	LONLAT_POINT_PLANAR.ST_SRID() AS SRID, 
- 	LONLAT_POINT_PLANAR.ST_Transform(4326).ST_SRID() AS TRANS_SRID
-	--,LONLAT_POINT_PLANAR.ST_Transform(4326).ST_DISTANCE(
-	--	NEW ST_Point('POINT(-0.745713 51.511867)', 4326), 'kilometer'
-	--) AS DIST_TO_MAIDENHEAD
-	--,LONLAT_POINT_CARTESIAN.ST_Transform(4326)
+ 	LONLAT_POINT_1000004326.ST_SRID() AS SRID, 
+ 	LONLAT_POINT_1000004326.ST_Transform(4326).ST_SRID() AS TRANS_SRID
+	--,LONLAT_POINT_1000004326.ST_Transform(4326).ST_DISTANCE(
+	--	NEW ST_Point('POINT(-123.1208974 49.2766576)', 4326), 'kilometer'
+	--) AS DIST_TO_VAN
+	--,LONLAT_POINT_0.ST_Transform(4326)
 FROM GEO_SPATIAL.CENSUS_GEO
 ORDER BY "ROWID" ASC; 
 
@@ -285,9 +296,8 @@ INSERT INTO GEO_SPATIAL.GEOTYPES VALUES (
 );
 
 SELECT	*,
-	SHAPE.ST_AsSVG() AS SHAPE
+	SHAPE.ST_AsWKT() AS SHAPE
 FROM GEO_SPATIAL.GEOTYPES;
-
 
 -- polygon with issues
 INSERT INTO GEO_SPATIAL.GEOTYPES VALUES (
