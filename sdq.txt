@@ -57,6 +57,7 @@ Login to http://hana:8000/sap/hana/ide/catalog/ as DEVUSER to see results
 # MATCH #
 #########
 
+DROP TABLE "CLEANSED_DATA";
 CREATE COLUMN TABLE "CLEANSED_DATA"(
 	"STREETNUMBER" INTEGER CS_INT,
 	"STD_ADDR_PRIM_NAME_FULL" NVARCHAR(100),
